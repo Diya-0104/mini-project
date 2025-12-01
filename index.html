@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Mini Chat</h1>
+    <div id="channels"></div>
+    <div id="messages"></div>
+    <input id="msgBox" />
+    <button onclick="sendMsg()">Send</button>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+      const socket = io("http://localhost:3001");
+      let currentChannel = "general";
+      let user = "User" + Math.floor(Math.random()*1000);
+
+      socket.emit("join", { user });
+      socket.emit("joinChannel", currentChannel);
+
+      fetch("http://localhost:3001/messages/" + currentChannel)
+        .then(r=>r.json()).then(msgs=>{
+          document.getElementById("messages").innerHTML =
+            msgs.map(m=>"<p>"+m.user+": "+m.text+"</p>").join("");
+        });
+
+      socket.on("message", (m)=>{
+        document.getElementById("messages").innerHTML += "<p>"+m.user+": "+m.text+"</p>";
+      });
+
+      function sendMsg(){
+        let text=document.getElementById("msgBox").value;
+        socket.emit("message",{channel:currentChannel, user, text});
+      }
+    </script>
+  </body>
+</html>
